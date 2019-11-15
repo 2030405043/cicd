@@ -1,0 +1,42 @@
+---
+kind: pipeline
+name: default
+workspace:
+  base: /go
+  path: src/cicd
+
+steps:
+  - name: build
+    image: golang:1.13-alpine
+    environment:
+      GOOS: linux
+      GOARCH: amd64
+      CGO_ENABLED: 0
+    commands:
+      - go build .
+    when:
+      branch:
+        - develop
+      event:
+        - push
+
+  - name: scp
+    image: appleboy/drone-scp
+    settings:
+      host: 112.125.24.175
+      user: root
+      port: 22
+      password: Mima1123
+      target: /usr/local/cicdd
+      source: cicd
+
+  - name: deploy
+    image: appleboy/drone-ssh
+    settings:
+      host: 112.125.24.175
+      username: root
+      password: Mima1123
+      port: 22
+      script:
+        - chmod +x /usr/local/cicdd/cicd
+        - nohup /usr/local/cicdd/cicd &
